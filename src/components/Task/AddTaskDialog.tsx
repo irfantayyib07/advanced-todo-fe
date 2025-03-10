@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -15,8 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ApiError, useAddTask } from "@/services/task";
+import { toast } from "sonner";
 
-// Define Zod schema for task validation
 const taskSchema = z.object({
  title: z.string().min(3, { message: "Title must be at least 3 characters" }),
  description: z.string().min(5, { message: "Description must be at least 5 characters" }),
@@ -41,12 +42,22 @@ function AddTaskDialog({ isOpen, setIsOpen }: AddTaskDialogProps) {
  });
 
  const {
-  register,
+  control,
   handleSubmit,
   formState: { errors },
   reset,
-  setValue,
  } = methods;
+
+ // Hook for adding a task
+ const { mutate: addTask, isPending } = useAddTask(
+  () => {
+   toast.success("Task Added");
+   closeDialog();
+  },
+  () => {
+   toast.error("Error Adding New Task");
+  },
+ );
 
  const closeDialog = () => {
   setIsOpen(false);
@@ -54,19 +65,7 @@ function AddTaskDialog({ isOpen, setIsOpen }: AddTaskDialogProps) {
  };
 
  const onSubmit = (data: TaskFormValues) => {
-  // Here you would typically add the task to your state or send it to an API
-  console.log("New task:", data);
-
-  // Create a new task with current timestamp
-  const newTask = {
-   ...data,
-   createdAt: new Date().toISOString(),
-  };
-
-  // Add your logic to save the task here
-
-  // Close the dialog and reset the form
-  closeDialog();
+  addTask(data);
  };
 
  return (
@@ -81,28 +80,39 @@ function AddTaskDialog({ isOpen, setIsOpen }: AddTaskDialogProps) {
       <div className="grid gap-4 py-4">
        <div className="grid gap-2">
         <Label htmlFor="title">Title</Label>
-        <Input id="title" placeholder="Task title" {...register("title")} />
+        <Controller
+         name="title"
+         control={control}
+         render={({ field }) => <Input id="title" placeholder="Task title" {...field} />}
+        />
         {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
        </div>
        <div className="grid gap-2">
         <Label htmlFor="description">Description</Label>
-        <Textarea id="description" placeholder="Describe the task" {...register("description")} />
+        <Controller
+         name="description"
+         control={control}
+         render={({ field }) => <Textarea id="description" placeholder="Describe the task" {...field} />}
+        />
         {errors.description && <p className="text-red-500 text-sm">{errors.description.message}</p>}
        </div>
        <div className="grid gap-2">
         <Label htmlFor="status">Status</Label>
-        <Select
-         defaultValue="pending"
-         onValueChange={value => setValue("status", value as "pending" | "completed")}
-        >
-         <SelectTrigger>
-          <SelectValue placeholder="Select a status" />
-         </SelectTrigger>
-         <SelectContent>
-          <SelectItem value="pending">Pending</SelectItem>
-          <SelectItem value="completed">Completed</SelectItem>
-         </SelectContent>
-        </Select>
+        <Controller
+         name="status"
+         control={control}
+         render={({ field }) => (
+          <Select value={field.value} onValueChange={field.onChange}>
+           <SelectTrigger>
+            <SelectValue placeholder="Select a status" />
+           </SelectTrigger>
+           <SelectContent>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+           </SelectContent>
+          </Select>
+         )}
+        />
         {errors.status && <p className="text-red-500 text-sm">{errors.status.message}</p>}
        </div>
       </div>
@@ -110,7 +120,9 @@ function AddTaskDialog({ isOpen, setIsOpen }: AddTaskDialogProps) {
        <Button type="button" variant="outline" onClick={closeDialog}>
         Cancel
        </Button>
-       <Button type="submit">Add Task</Button>
+       <Button type="submit" disabled={isPending}>
+        {isPending ? "Adding..." : "Add Task"}
+       </Button>
       </DialogFooter>
      </form>
     </DialogContent>

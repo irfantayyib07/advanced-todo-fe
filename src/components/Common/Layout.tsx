@@ -1,9 +1,10 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import { useState } from "react";
-import { Button } from "./ui/button";
-import AddTaskDialog from "./AddTaskDialog";
+import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
+import AddTaskDialog from "../Task/AddTaskDialog";
+import { Toaster } from "../ui/sonner";
 
 function Layout({}) {
  const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
@@ -17,13 +18,14 @@ function Layout({}) {
     </main>
     <Button
      onClick={() => setIsAddTaskOpen(true)}
-     className="fixed bottom-6 right-6 rounded-full w-12 h-12 p-0 shadow-lg"
+     className="!bg-black fixed bottom-6 right-6 rounded-full w-12 h-12 p-0 shadow-lg"
      variant="secondary"
     >
-     <Plus className="h-6 w-6" />
+     <Plus className="h-6 w-6" color="white" />
     </Button>
     <AddTaskDialog isOpen={isAddTaskOpen} setIsOpen={setIsAddTaskOpen} />
    </div>
+   <Toaster position="top-right" />
   </>
  );
 }
