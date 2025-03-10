@@ -42,7 +42,7 @@ function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
  return (
   <>
    <Table className="mb-4">
-    <TableCaption>{tasks.length === 0 ? "No tasks found" : "You're all set!"}</TableCaption>
+    {tasks.length === 0 ? null : <TableCaption>You're all set!</TableCaption>}
     <TableHeader>
      <TableRow>
       <TableHead className="w-1/5">Title</TableHead>

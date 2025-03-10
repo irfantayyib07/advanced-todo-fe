@@ -23,7 +23,7 @@ export function useTasks(): UseQueryResult<TaskResponse> {
  return useQuery({
   queryKey: [QUERY_KEY],
   queryFn: () => getAllTasks(),
-  select: res => res || { task: {} as Task },
+  select: res => res || ([] as Task[]),
  });
 }
 

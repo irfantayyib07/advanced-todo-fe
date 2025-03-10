@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm, FormProvider, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ApiError, useAddTask } from "@/services/task";
+import { useAddTask } from "@/services/task";
 import { toast } from "sonner";
 
 const taskSchema = z.object({

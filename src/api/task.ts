@@ -10,13 +10,21 @@ import {
 import { ENDPOINTS } from "@/constants/endpoints";
 
 const apiClient = axios.create({
- baseURL: "http://localhost:3500",
+ baseURL: "https://sprouto-group-assignment-be.vercel.app",
 });
 
 export const getAllTasks = async (): Promise<TaskResponse> => {
  const url = `${ENDPOINTS.TASKS}`;
- const response = await apiClient.get<TaskResponse>(url);
- return response.data;
+
+ try {
+  const response = await apiClient.get<TaskResponse>(url);
+  return response.data;
+ } catch (error: any) {
+  if (axios.isAxiosError(error) && error.response?.status === 404) {
+   return [];
+  }
+  throw error;
+ }
 };
 
 export const addTask = async (payload: AddTaskPayload): Promise<AddTaskResponse> => {
