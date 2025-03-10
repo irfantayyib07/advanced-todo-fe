@@ -10,11 +10,20 @@ import {
  TableHeader,
  TableRow,
 } from "@/components/ui/table";
+import {
+ AlertDialog,
+ AlertDialogAction,
+ AlertDialogContent,
+ AlertDialogDescription,
+ AlertDialogFooter,
+ AlertDialogHeader,
+ AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Task } from "@/types/task";
 import { Pencil, Trash2 } from "lucide-react";
 import EditTaskDialog from "./EditTaskDialog";
 import DeleteTaskDialog from "./DeleteTaskDialog";
-import { capitalize } from "@/lib/utils";
+import { capitalize, cn } from "@/lib/utils";
 
 function formatDate(dateString: string) {
  const date = new Date(dateString);
@@ -27,17 +36,24 @@ function formatDate(dateString: string) {
 
 interface TaskTableProps {
  tasks: Task[];
- onTasksChanged: () => void; // Callback to refresh tasks after mutations
+ onTasksChanged: () => void;
 }
 
 function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
- // Track which dialogs are open with task IDs
  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+ const [viewingDescriptionTaskId, setViewingDescriptionTaskId] = useState<string | null>(null);
 
- // Find the task objects based on IDs
  const taskToEdit = tasks.find(task => task._id === editingTaskId) || null;
  const taskToDelete = tasks.find(task => task._id === deletingTaskId) || null;
+ const taskWithDescription = tasks.find(task => task._id === viewingDescriptionTaskId) || null;
+
+ const truncateDescription = (description: string) => {
+  if (description.length > 50) {
+   return `${description.substring(0, 50)}...`;
+  }
+  return description;
+ };
 
  return (
   <>
@@ -46,7 +62,9 @@ function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
     <TableHeader>
      <TableRow>
       <TableHead className="w-1/5">Title</TableHead>
-      <TableHead className="w-2/5">Description</TableHead>
+      <TableHead className="w-2/5">
+       Description <small>(Click to read full)</small>
+      </TableHead>
       <TableHead>Status</TableHead>
       <TableHead>Created</TableHead>
       <TableHead className="text-right">Actions</TableHead>
@@ -63,7 +81,12 @@ function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
       tasks.map(task => (
        <TableRow key={task._id}>
         <TableCell className="font-medium">{task.title}</TableCell>
-        <TableCell>{task.description}</TableCell>
+        <TableCell
+         className={cn(task.description.length > 50 ? "cursor-pointer hover:text-blue-600" : "")}
+         onClick={() => task.description.length > 50 && setViewingDescriptionTaskId(task._id)}
+        >
+         {truncateDescription(task.description)}
+        </TableCell>
         <TableCell>
          <Badge
           className={
@@ -95,7 +118,6 @@ function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
     </TableBody>
    </Table>
 
-   {/* Single edit dialog that changes which task it operates on */}
    {taskToEdit && (
     <EditTaskDialog
      isOpen={editingTaskId !== null}
@@ -107,7 +129,6 @@ function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
     />
    )}
 
-   {/* Single delete dialog that changes which task it operates on */}
    {taskToDelete && (
     <DeleteTaskDialog
      isOpen={deletingTaskId !== null}
@@ -117,6 +138,27 @@ function TaskTable({ tasks, onTasksChanged }: TaskTableProps) {
      taskToDelete={taskToDelete}
      onSuccess={onTasksChanged}
     />
+   )}
+
+   {taskWithDescription && (
+    <AlertDialog
+     open={viewingDescriptionTaskId !== null}
+     onOpenChange={open => {
+      if (!open) setViewingDescriptionTaskId(null);
+     }}
+    >
+     <AlertDialogContent>
+      <AlertDialogHeader>
+       <AlertDialogTitle>{taskWithDescription.title}</AlertDialogTitle>
+       <AlertDialogDescription className="whitespace-pre-wrap">
+        {taskWithDescription.description}
+       </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+       <AlertDialogAction>Close</AlertDialogAction>
+      </AlertDialogFooter>
+     </AlertDialogContent>
+    </AlertDialog>
    )}
   </>
  );
