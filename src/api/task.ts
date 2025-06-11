@@ -10,7 +10,7 @@ import {
 import { ENDPOINTS } from "@/constants/endpoints";
 
 const apiClient = axios.create({
- baseURL: "https://sprouto-group-assignment-be.vercel.app",
+ baseURL: "https://advanced-todo-app-be.vercel.app",
 });
 
 export const getAllTasks = async (): Promise<TaskResponse> => {
